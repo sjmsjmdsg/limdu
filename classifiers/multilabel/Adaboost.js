@@ -4,8 +4,7 @@ var _ = require("underscore")._;
 var fs = require('fs');
 var partitions = require('../../utils/partitions');
 var crypto = require('crypto')
-var child_process = require('child_process')
-
+var execSync = require('child_process').execSync
 /**
  * Adaptive Boosting (Adaboost) is a greedy search for a linear combination of 
  * classifiers by overweighting the examples that are misclassified by each 
@@ -39,7 +38,7 @@ var Adaboost = function(opts) {
 
 Adaboost.isInstalled = function() {
     try {
-        child_process.execFileSync("icsiboost");
+        var result = execSync("icsiboost");
         return true;
     } catch (err) {
         return false;
@@ -100,9 +99,7 @@ Adaboost.prototype = {
 			fs.writeFileSync("./"+this.folder+"/"+this.assigner+"."+key1, str)
 		}, this)
 
-		var command = "icsiboost"
-		var args = ["-S", "./"+this.folder+"/"+this.assigner, "-n", this.iterations]
-		var result = child_process.execFileSync(command, args)
+		var result = execSync("icsiboost -S ./"+this.folder+"/"+this.assigner+" -n "+this.iterations)
 		console.log(result)
 	},
 
@@ -112,16 +109,7 @@ Adaboost.prototype = {
 
 		fs.writeFileSync("./"+this.folder+"/"+this.assigner+".test", sample.replace(/\,/g,'')+"\n")
 		fs.writeFileSync("./"+this.folder+"/"+this.assigner+".test", sample+"\n")
-		var command = "icsiboost"
-		var args = ["-S", "./"+this.folder+"/"+this.assigner, 
-					"-W", this.ngram_length, 
-					"-N", this.text_expert,
-					"-C",
-					"<",
-					"./"+this.folder+"/"+this.assigner+".test",
-					">",
-					"./"+this.folder+"/"+this.assigner+".output"]
-		var result = child_process.execFileSync(command, args)
+		var result = execSync("icsiboost -S ./"+this.folder+"/"+this.assigner +" -W "+this.ngram_length+" -N "+this.text_expert+" -C < ./"+this.folder+"/"+this.assigner+".test > ./"+this.folder+"/"+this.assigner+".output")
 		var stats = fs.readFileSync("./"+this.folder+"/"+this.assigner+".output", "utf8");
 
 		set_of_labels = this.set_of_labels
